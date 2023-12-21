@@ -46,8 +46,8 @@
                 let pVal = parseFloat(document.getElementById("0_" + j).value) || 0;
                 sumP += pVal;
             }
-            if (sumP !== 1) {
-                alert("Сума ймовірностей у рядку 'p' не дорівнює 1.");
+            if (Math.abs(1 - sumP) > 0.0001) {
+                alert("Сума ймовірностей у рядку 'p' не дорівнює 1. " + sumP);
                 return false;
             }
 
@@ -103,8 +103,9 @@
             // Критерій Байєса «максимізації прибутку»
             let bayesResults = matrix.map(row => row.reduce((acc, val, idx) => acc + val * probabilities[idx], 0));
             let maxBayesValue = Math.max(...bayesResults);
-            let maxBayesIndex = bayesResults.indexOf(maxBayesValue) + 1;
-            document.getElementById("result1").innerHTML = "1) За критерієм Байєса максимальний елемент - " + maxBayesValue + " за рішенням " + maxBayesIndex;
+            let maxBayesIndices = getIndices(bayesResults, maxBayesValue).map(i => i + 1); // Збільшуємо на 1 для відображення
+            document.getElementById("result1").innerHTML = "1) За критерієм Байєса максимальний елемент - " + maxBayesValue + " за рішеннями " + maxBayesIndices.join(", ");
+
 
             // Критерій мінімізації дисперсії
             let dispersionResults = matrix.map(row => {
@@ -114,8 +115,8 @@
             });
 
             let minDispersionValue = Math.min(...dispersionResults);
-            let minDispersionIndex = dispersionResults.indexOf(minDispersionValue) + 1;
-            document.getElementById("result2").innerHTML = "2) За критерієм мінімізації дисперсії мінімальний елемент - " + minDispersionValue + " за рішенням " + minDispersionIndex;
+            let minDispersionIndices = getIndices(dispersionResults, minDispersionValue).map(i => i + 1);
+            document.getElementById("result2").innerHTML = "2) За критерієм мінімізації дисперсії мінімальний елемент - " + minDispersionValue + " за рішеннями " + minDispersionIndices.join(", ");
 
 
             // Критерій максимізації ймовірності
@@ -125,8 +126,8 @@
                 }, 0);
             });
             let maxProbMaxValue = Math.max(...probMaxResults);
-            let maxProbMaxIndex = probMaxResults.indexOf(maxProbMaxValue) + 1;
-            document.getElementById("result3").innerHTML = "3) За критерієм максимізації ймовірності максимальний елемент - " + maxProbMaxValue + " за рішенням " + maxProbMaxIndex;
+            let maxProbMaxIndices = getIndices(probMaxResults, maxProbMaxValue).map(i => i + 1);
+            document.getElementById("result3").innerHTML = "3) За критерієм максимізації ймовірності максимальний елемент - " + maxProbMaxValue + " за рішеннями " + maxProbMaxIndices.join(", ");
 
             // Модальний критерій
             let maxProb = Math.max(...probabilities);
@@ -138,9 +139,8 @@
                 let maxProbIndex = probabilities.indexOf(maxProb);
                 let modalResults = matrix.map(row => row[maxProbIndex]);
                 let maxModalValue = Math.max(...modalResults);
-                let maxModalIndex = modalResults.indexOf(maxModalValue) + 1;
-                document.getElementById("result4").innerHTML = "4) За модальним критерієм максимальний елемент - " + maxModalValue + " за рішенням " + maxModalIndex;
-            }
+                let maxModalIndices = getIndices(modalResults, maxModalValue).map(i => i + 1);
+                document.getElementById("result4").innerHTML = "4) За модальним критерієм максимальний елемент - " + maxModalValue + " за рішеннями " + maxModalIndices.join(", ");            }
 
         }
 

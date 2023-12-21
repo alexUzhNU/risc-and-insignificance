@@ -2,6 +2,17 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script>
+        function getIndices(arr, value) {
+            let indices = [];
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i] === value) {
+                    indices.push(i);
+                }
+            }
+            return indices;
+        }
+
+
         let maxArray = [];
         let minArray = [];
 
@@ -142,29 +153,29 @@
             document.getElementById("table4").innerHTML = tableHTML;
             // Завдання 1
             let maxOfMax = Math.max(...maxArray);
-            let maxIndex = maxArray.indexOf(maxOfMax) + 1;
-            document.getElementById("result1").innerHTML = "1) За критерієм максімакса максимальний елемент - " + maxOfMax + " за рішенням " + maxIndex;
+            let maxIndices = getIndices(maxArray, maxOfMax).map(i => i + 1); // Збільшуємо на 1, оскільки індексація починається з нуля
+            document.getElementById("result1").innerHTML = "1) За критерієм максімакса максимальний елемент - " + maxOfMax + ", за рішеннями: " + maxIndices.join(", ");
 
             // Завдання 2
             let maxOfMin = Math.max(...minArray);
-            let minIndex = minArray.indexOf(maxOfMin) + 1;
-            document.getElementById("result2").innerHTML = "2) За критерієм мінімакса максимальний з мінімумів - " + maxOfMin + " за рішенням " + minIndex;
+            let minIndices = getIndices(minArray, maxOfMin).map(i => i + 1);
+            document.getElementById("result2").innerHTML = "2) За критерієм мінімакса максимальний з мінімумів - " + maxOfMin + ", за рішеннями: " + minIndices.join(", ");
 
             let minOfMax = Math.min(...maxArray);
-            let min2Index = maxArray.indexOf(minOfMax) + 1;
-            document.getElementById("result2.1").innerHTML = "2) За критерієм мінімакса мінімальний з максимумів - " + minOfMax + " за рішенням " + min2Index;
+            let min2Index = getIndices(maxArray, minOfMax).map(i => i + 1);
+            document.getElementById("result2.1").innerHTML = "2) За критерієм мінімакса мінімальний з максимумів - " + minOfMax + " за рішеннями: " + min2Index.join(", ");
 
 
             // Завдання 3
             let mixedArray = maxArray.map((max, idx) => inputNumber * max + (1 - inputNumber) * minArray[idx]);
             let maxOfMixed = Math.max(...mixedArray);
-            let mixedIndex = mixedArray.indexOf(maxOfMixed) + 1;
-            document.getElementById("result3").innerHTML = "3) За критерієм Гурвіца максимальний елемент - " + maxOfMixed + " за рішенням " + mixedIndex;
+            let mixedIndices = getIndices(mixedArray, maxOfMixed).map(i => i + 1);
+            document.getElementById("result3").innerHTML = "3) За критерієм Гурвіца максимальний елемент - " + maxOfMixed + ", за рішеннями: " + mixedIndices.join(", ");
 
             // Завдання 4
             let minOfNewRowMax = Math.min(...newRowMaxArray);
-            let minNewMaxIndex = newRowMaxArray.indexOf(minOfNewRowMax) + 1;
-            document.getElementById("result4").innerHTML = "4) За критерієм Севіджа мінімальний елемент - " + minOfNewRowMax + " за рішенням " + minNewMaxIndex;
+            let newRowMaxIndices = getIndices(newRowMaxArray, minOfNewRowMax).map(i => i + 1);
+            document.getElementById("result4").innerHTML = "4) За критерієм Севіджа мінімальний елемент - " + minOfNewRowMax + ", за рішеннями: " + newRowMaxIndices.join(", ");
         }
 
     </script>
