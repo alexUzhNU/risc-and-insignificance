@@ -1,0 +1,213 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script>
+        function createMatrix() {
+            let n = parseInt(document.querySelector("#n").value) + 1; // Додатковий рядок для ймовірностей
+            let m = parseInt(document.querySelector("#m").value);
+
+            let tableHead = "<thead><tr><th scope=\"col\">r\\y</th>"; // Зміна 'x' на 'r'
+            for (let j = 0; j < m; j++) {
+                tableHead += "<th scope=\"col\">y" + (j + 1).toString() + "</th>";
+            }
+            tableHead += "</tr></thead>";
+            document.getElementById("table").innerHTML = tableHead;
+
+            for (let i = 0; i < n; i++) {
+
+                let tableRow = "<tr><th scope=\"row\">" + (i === 0 ? "p" : "x" + i.toString()) + "</th>";
+                for (let j = 0; j < m; j++) {
+                    tableRow += "<td><input style=\"min-width: 2cm\" class=\"form-control\" type=\"text\" id=\"" + i.toString() + "_" + j.toString() + "\" placeholder=\"" + "-" + "\"></td>";
+                }
+                tableRow += "</tr>";
+                document.getElementById("table").innerHTML += tableRow;
+            }
+        }
+
+        function validateAndCalculate() {
+            // First, validate inputs
+            if (!validateInputs()) {
+                return;
+            }
+            // Then, perform calculations
+            calculateAll();
+        }
+
+        function validateInputs() {
+            let n = parseInt(document.querySelector("#n").value);
+            let m = parseInt(document.querySelector("#m").value);
+            let sumP = 0;
+            let allFilled = true;
+            let maxValue = -Infinity
+            let minValue = Infinity
+
+            // Validate probabilities sum
+            for (let j = 0; j < m; j++) {
+                let pVal = parseFloat(document.getElementById("0_" + j).value) || 0;
+                sumP += pVal;
+            }
+            if (sumP !== 1) {
+                alert("Сума ймовірностей у рядку 'p' не дорівнює 1.");
+                return false;
+            }
+
+            // Check for any empty input fields
+            for (let i = 1; i <= n; i++) {
+                for (let j = 0; j < m; j++) {
+                    let inputVal = document.getElementById(i + "_" + j).value;
+                    if (inputVal === "") {
+                        allFilled = false;
+                        break;
+                    }
+                    maxValue = Math.max(maxValue, parseFloat(inputVal));
+                    minValue = Math.min(minValue, parseFloat(inputVal));
+                }
+            }
+            if (!allFilled) {
+                alert("Є незаповнені поля у таблиці.");
+                return false;
+            }
+
+            if (parseFloat(document.querySelector("#inputNumber").value) < minValue || parseFloat(document.querySelector("#inputNumber").value) > maxValue || document.getElementById("inputNumber").value === "") {
+                alert("Число для 3 завдання введено неправильно! Воно має бути в межах від " + minValue + " до " + maxValue);
+                return false;
+            }
+
+
+            return true; // All validations passed
+        }
+
+
+        function getIndices(arr, value) {
+            return arr.map((e, i) => e === value ? i : -1).filter(i => i !== -1);
+        }
+
+        function calculateAll() {
+            let n = parseInt(document.querySelector("#n").value) + 1;
+            let m = parseInt(document.querySelector("#m").value);
+            let probabilities = [];
+            let matrix = [];
+            let threshold = parseFloat(document.querySelector("#inputNumber").value); // Використовуємо як порогове значення 'b'
+
+            // Зчитування значень матриці та ймовірностей
+            for (let i = 0; i < n; i++) {
+                let row = [];
+                for (let j = 0; j < m; j++) {
+                    let val = parseFloat(document.getElementById(i + "_" + j).value) || 0;
+                    if (i === 0) { probabilities.push(val); console.log(val); }
+                    else row.push(val);
+                }
+                if (i !== 0) matrix.push(row);
+            }
+
+            // Критерій Байєса «максимізації прибутку»
+            let bayesResults = matrix.map(row => row.reduce((acc, val, idx) => acc + val * probabilities[idx], 0));
+            let maxBayesValue = Math.max(...bayesResults);
+            let maxBayesIndex = bayesResults.indexOf(maxBayesValue) + 1;
+            document.getElementById("result1").innerHTML = "1) За критерієм Байєса максимальний елемент - " + maxBayesValue + " за рішенням " + maxBayesIndex;
+
+            // Критерій мінімізації дисперсії
+            let dispersionResults = matrix.map(row => {
+                let meanSquare = row.reduce((acc, val, idx) => acc + val ** 2 * probabilities[idx], 0);
+                let mean = row.reduce((acc, val, idx) => acc + val * probabilities[idx], 0);
+                return meanSquare - mean ** 2;
+            });
+
+            let minDispersionValue = Math.min(...dispersionResults);
+            let minDispersionIndex = dispersionResults.indexOf(minDispersionValue) + 1;
+            document.getElementById("result2").innerHTML = "2) За критерієм мінімізації дисперсії мінімальний елемент - " + minDispersionValue + " за рішенням " + minDispersionIndex;
+
+
+            // Критерій максимізації ймовірності
+            let probMaxResults = matrix.map(row => {
+                return row.reduce((acc, val, idx) => {
+                    return acc + (val > threshold ? probabilities[idx] : 0);
+                }, 0);
+            });
+            let maxProbMaxValue = Math.max(...probMaxResults);
+            let maxProbMaxIndex = probMaxResults.indexOf(maxProbMaxValue) + 1;
+            document.getElementById("result3").innerHTML = "3) За критерієм максимізації ймовірності максимальний елемент - " + maxProbMaxValue + " за рішенням " + maxProbMaxIndex;
+
+            // Модальний критерій
+            let maxProb = Math.max(...probabilities);
+            let countMaxProb = probabilities.filter(p => p === maxProb).length; // Підрахунок кількості максимальних ймовірностей
+
+            if (countMaxProb > 1) {
+                document.getElementById("result4").innerHTML = "4) Неможливо обрахувати - максимальна ймовірність не є унікальною";
+            } else {
+                let maxProbIndex = probabilities.indexOf(maxProb);
+                let modalResults = matrix.map(row => row[maxProbIndex]);
+                let maxModalValue = Math.max(...modalResults);
+                let maxModalIndex = modalResults.indexOf(maxModalValue) + 1;
+                document.getElementById("result4").innerHTML = "4) За модальним критерієм максимальний елемент - " + maxModalValue + " за рішенням " + maxModalIndex;
+            }
+
+        }
+
+    </script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Oleksandr Gavrylov</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Умови невизначенності</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="ryzyk.html">Умови ризику</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="Container">
+        <form>
+            <div class="form-group">
+                <input type="text" class="form-control" id="n" name="n" placeholder="Кількість рядків">
+
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="m" name="m" placeholder="Кількість стовбців">
+
+            </div>
+            <button type="button" onclick="createMatrix();" class="btn btn-info">
+                Створити матрицю
+            </button>
+            <table id="table" class="table"></table>
+
+            <!-- Місце для результатів -->
+            <div id="result1" class="card-body" style="font-size: large; font-weight: bold;"></div>
+            <div id="result2" class="card-body" style="font-size: large; font-weight: bold;"></div>
+            <div id="result3" class="card-body" style="font-size: large; font-weight: bold;"></div>
+
+            <!-- Додатковий ввод для третього завдання -->
+            <div class="form-group">
+                <input type="text" class="form-control" id="inputNumber" placeholder="Число для 3 завдання">
+            </div>
+
+            <!-- Кнопка для розрахунку -->
+            <button type="button" onclick="validateAndCalculate();" class="btn btn-primary">
+                Перевірити та обрахувати всі завдання!
+            </button>
+
+
+            <div id="result4" class="card-body" style="font-size: large; font-weight: bold;"></div>
+
+    </div>
+    </div>
+    </form>
+
+
+
+    </div>
+
+
+
+</body>

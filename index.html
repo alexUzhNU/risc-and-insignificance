@@ -1,0 +1,244 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script>
+        let maxArray = [];
+        let minArray = [];
+
+        function createMatrix() {
+
+            let n = document.querySelector("#n").value;
+            let m = document.querySelector("#m").value;
+
+            document.getElementById("table").innerHTML = "";
+
+            let tableHead = "<thead> <tr><th scope=\"col\"> x\\y</th>";
+            for (let j = 0; j < m; j++) {
+                tableHead += "<th scope=\"col\">y" + (j + 1).toString() + "</th>";
+            }
+            tableHead += "</tr></thead>";
+            document.getElementById("table").innerHTML += tableHead;
+            for (let i = 0; i < n; i++) {
+                let tableRow = "";
+                tableRow += "<tr><th scope=\"row\">x" + (i + 1).toString() + "</th>";
+                for (let j = 0; j < m; j++) {
+                    tableRow += ("<td> <input style=\"min-width: 2cm\" class=\"form-control\" type=\"text\" id=\"" + i.toString() + "_" + j.toString() + "\"placeholder=\"" + "-" + "\" ></td > ");
+                }
+                tableRow += "</tr>";
+                document.getElementById("table").innerHTML += tableRow;
+            }
+        }
+
+
+        function validateAndCalculate() {
+            if (validateInputs() && validateProbabilityInput()) {
+                calculateAll();
+            }
+        }
+
+        function validateInputs() {
+            let n = parseInt(document.querySelector("#n").value);
+            let m = parseInt(document.querySelector("#m").value);
+            let allFilled = true;
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < m; j++) {
+                    if (document.getElementById(i + "_" + j).value === '') {
+                        allFilled = false;
+                        break;
+                    }
+                }
+                if (!allFilled) break;
+            }
+
+            if (!allFilled) {
+                alert("Усі поля мають бути заповнені.");
+                return false;
+            }
+            return true;
+        }
+
+        function validateProbabilityInput() {
+            let inputNumber = parseFloat(document.querySelector("#inputNumber").value);
+            if (isNaN(inputNumber) || inputNumber < 0 || inputNumber > 1) {
+                alert("Значення у полі 'Число від 0 до 1 для критерію Гурвіца' має бути між 0 та 1.");
+                return false;
+            }
+            return true;
+        }
+
+
+        function calculateAll() {
+            // Отримуємо розміри матриці
+            let n = parseInt(document.querySelector("#n").value);
+            let m = parseInt(document.querySelector("#m").value);
+            let inputNumber = parseFloat(document.querySelector("#inputNumber").value);
+
+
+            maxArray = new Array(n).fill(-Infinity);
+            minArray = new Array(n).fill(Infinity);
+
+            // Проходимося по матриці
+            document.getElementById("table1").innerHTML = ("<thead><tr><th scope=\"col\">Рішення</th><th scope=\"col\">Обраховане значення</th></tr></thead>");
+            document.getElementById("table2").innerHTML = ("<thead><tr><th scope=\"col\">Рішення</th><th scope=\"col\">Обраховане значення</th></tr></thead>");
+            document.getElementById("table2.1").innerHTML = ("<thead><tr><th scope=\"col\">Рішення</th><th scope=\"col\">Обраховане значення</th></tr></thead>");
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < m; j++) {
+                    let val = parseFloat(document.getElementById(i + "_" + j).value);
+                    if (!isNaN(val)) {
+                        maxArray[i] = Math.max(maxArray[i], val);
+                        minArray[i] = Math.min(minArray[i], val);
+                    }
+                }
+                document.getElementById("table1").innerHTML += ("<tr><th scope=\"row\">z" + (i + 1).toString() + "</th><td>" + maxArray[i] + "</td>");
+                document.getElementById("table2").innerHTML += ("<tr><th scope=\"row\">z" + (i + 1).toString() + "</th><td>" + minArray[i] + "</td>");
+                document.getElementById("table2.1").innerHTML += ("<tr><th scope=\"row\">z" + (i + 1).toString() + "</th><td>" + maxArray[i] + "</td>");
+            }
+
+            let matrix = [];
+
+            // Зчитування значень із першої таблиці
+            for (let i = 0; i < n; i++) {
+                let row = [];
+                for (let j = 0; j < m; j++) {
+                    row.push(parseFloat(document.getElementById(i + "_" + j).value) || 0);
+                }
+                matrix.push(row);
+            }
+
+            // Розрахунок максимальних елементів у стовпцях
+            let colMaxArray = Array.from({ length: m }, (_, j) =>
+                Math.max(...matrix.map(row => row[j]))
+            );
+
+            // Створення нової таблиці та масиву нових максимумів
+            let newRowMaxArray = [];
+            let tableHTML = "<thead><tr><th scope='col'>x\\y</th>";
+            for (let j = 0; j < m; j++) {
+                tableHTML += "<th scope='col'>y" + (j + 1) + "</th>";
+            }
+            tableHTML += "<th scope='col'>Новий максимум</th></tr></thead>";
+
+            for (let i = 0; i < n; i++) {
+                let rowMax = -Infinity;
+                tableHTML += "<tr><th scope='row'>x" + (i + 1) + "</th>";
+                for (let j = 0; j < m; j++) {
+                    let diff = colMaxArray[j] - matrix[i][j];
+                    rowMax = Math.max(rowMax, diff);
+                    tableHTML += "<td>" + diff + "</td>";
+                }
+                newRowMaxArray.push(rowMax);
+                tableHTML += "<td>" + rowMax + "</td></tr>";
+            }
+
+            document.getElementById("table4").innerHTML = tableHTML;
+
+            // Додавання рядка з максимальними значеннями стовпців
+            tableHTML += "<tr><th scope='row'>Максимум</th>";
+            colMaxArray.slice(0, -1).forEach(val => tableHTML += "<td>" + val + "</td>");
+            let lastColMax = Math.max(...colMaxArray);
+            tableHTML += "<td>" + lastColMax + "</td></tr>";
+
+            document.getElementById("table4").innerHTML = tableHTML;
+            // Завдання 1
+            let maxOfMax = Math.max(...maxArray);
+            let maxIndex = maxArray.indexOf(maxOfMax) + 1;
+            document.getElementById("result1").innerHTML = "1) За критерієм максімакса максимальний елемент - " + maxOfMax + " за рішенням " + maxIndex;
+
+            // Завдання 2
+            let maxOfMin = Math.max(...minArray);
+            let minIndex = minArray.indexOf(maxOfMin) + 1;
+            document.getElementById("result2").innerHTML = "2) За критерієм мінімакса максимальний з мінімумів - " + maxOfMin + " за рішенням " + minIndex;
+
+            let minOfMax = Math.min(...maxArray);
+            let min2Index = maxArray.indexOf(minOfMax) + 1;
+            document.getElementById("result2.1").innerHTML = "2) За критерієм мінімакса мінімальний з максимумів - " + minOfMax + " за рішенням " + min2Index;
+
+
+            // Завдання 3
+            let mixedArray = maxArray.map((max, idx) => inputNumber * max + (1 - inputNumber) * minArray[idx]);
+            let maxOfMixed = Math.max(...mixedArray);
+            let mixedIndex = mixedArray.indexOf(maxOfMixed) + 1;
+            document.getElementById("result3").innerHTML = "3) За критерієм Гурвіца максимальний елемент - " + maxOfMixed + " за рішенням " + mixedIndex;
+
+            // Завдання 4
+            let minOfNewRowMax = Math.min(...newRowMaxArray);
+            let minNewMaxIndex = newRowMaxArray.indexOf(minOfNewRowMax) + 1;
+            document.getElementById("result4").innerHTML = "4) За критерієм Севіджа мінімальний елемент - " + minOfNewRowMax + " за рішенням " + minNewMaxIndex;
+        }
+
+    </script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Oleksandr Gavrylov</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Умови невизначенності</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="ryzyk.html">Умови ризику</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="Container">
+        <form>
+            <div class="form-group">
+                <input type="text" class="form-control" id="n" name="n" placeholder="Кількість рядків">
+
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="m" name="m" placeholder="Кількість стовбців">
+
+            </div>
+            <button type="button" onclick="createMatrix();" class="btn btn-info">
+                Створити матрицю
+            </button>
+            <table id="table" class="table"></table>
+
+
+            <!-- Місце для результатів -->
+            <table id="table1" class="table"></table>
+            <div id="result1" class="card-body" style="font-size: large; font-weight: bold;"></div>
+            <table id="table2" class="table"></table>
+            <div id="result2" class="card-body" style="font-size: large; font-weight: bold;"></div>
+            <table id="table2.1" class="table"></table>
+            <div id="result2.1" class="card-body" style="font-size: large; font-weight: bold;"></div>
+            <table id="table3" class="table"></table>
+            <div id="result3" class="card-body" style="font-size: large; font-weight: bold;"></div>
+
+            <!-- Додатковий ввод для третього завдання -->
+            <div class="form-group">
+                <input type="text" class="form-control" id="inputNumber"
+                    placeholder="Число від 0 до 1 для критерію Гурвіца">
+            </div>
+
+            <!-- Кнопка для розрахунку -->
+            <button type="button" onclick="validateAndCalculate();" class="btn btn-primary">
+                Перевірити та обрахувати всі завдання!
+            </button>
+
+
+            <table id="table4" class="table"></table>
+            <div id="result4" class="card-body" style="font-size: large; font-weight: bold;"></div>
+
+    </div>
+    </div>
+    </form>
+
+
+
+    </div>
+
+
+
+</body>
